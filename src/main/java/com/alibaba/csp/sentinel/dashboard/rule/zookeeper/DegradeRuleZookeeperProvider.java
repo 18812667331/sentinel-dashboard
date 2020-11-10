@@ -15,38 +15,28 @@
  */
 package com.alibaba.csp.sentinel.dashboard.rule.zookeeper;
 
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.DegradeRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
+import com.alibaba.csp.sentinel.dashboard.rule.zookeeper.common.RuleZookeeperUtil;
 import com.alibaba.csp.sentinel.datasource.Converter;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Component("flowRuleZookeeperProvider")
-public class FlowRuleZookeeperProvider implements DynamicRuleProvider<List<FlowRuleEntity>> {
-
+/**
+ * @author zoe
+ * @date 2020/11/9 11:30
+ */
+@Component("degradeRuleZookeeperProvider")
+public class DegradeRuleZookeeperProvider implements DynamicRuleProvider<List<DegradeRuleEntity>> {
     @Autowired
-    private CuratorFramework zkClient;
-    @Autowired
-    private Converter<String, List<FlowRuleEntity>> converter;
+    private Converter<String, List<DegradeRuleEntity>> converter;
 
     @Override
-    public List<FlowRuleEntity> getRules(String appName) throws Exception {
-        String zkPath = ZookeeperConfigUtil.getPath(appName,FlowRuleEntity.class);
-        Stat stat = zkClient.checkExists().forPath(zkPath);
-        if(stat == null){
-            return new ArrayList<>(0);
-        }
-        byte[] bytes = zkClient.getData().forPath(zkPath);
-        if (null == bytes || bytes.length == 0) {
-            return new ArrayList<>();
-        }
-        String s = new String(bytes);
-
-        return converter.convert(s);
+    public List<DegradeRuleEntity> getRules(String appName) throws Exception {
+        return RuleZookeeperUtil.getRules(appName, converter, DegradeRuleEntity.class);
     }
 }

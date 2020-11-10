@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.csp.sentinel.dashboard.repository.rule;
-
-import java.util.concurrent.atomic.AtomicLong;
+package com.alibaba.csp.sentinel.dashboard.rule.zookeeper;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntity;
-
+import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
+import com.alibaba.csp.sentinel.dashboard.rule.zookeeper.common.RuleZookeeperUtil;
+import com.alibaba.csp.sentinel.datasource.Converter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * @author leyou
- */
-@Component
-public class InMemSystemRuleStore extends InMemoryRuleRepositoryAdapter<SystemRuleEntity> {
+import java.util.List;
 
-    private static AtomicLong ids = new AtomicLong(System.currentTimeMillis());
+/**
+ * @author zoe
+ * @date 2020/11/9 11:30
+ */
+@Component("systemRuleZookeeperProvider")
+public class SystemRuleZookeeperProvider implements DynamicRuleProvider<List<SystemRuleEntity>> {
+    @Autowired
+    private Converter<String, List<SystemRuleEntity>> converter;
 
     @Override
-    protected long nextId() {
-        return ids.incrementAndGet();
+    public List<SystemRuleEntity> getRules(String appName) throws Exception {
+        return RuleZookeeperUtil.getRules(appName, converter, SystemRuleEntity.class);
     }
 }

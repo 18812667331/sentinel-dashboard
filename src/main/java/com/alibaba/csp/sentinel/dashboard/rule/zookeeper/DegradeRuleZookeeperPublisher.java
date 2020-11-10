@@ -15,36 +15,28 @@
  */
 package com.alibaba.csp.sentinel.dashboard.rule.zookeeper;
 
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.DegradeRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.FlowRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
+import com.alibaba.csp.sentinel.dashboard.rule.zookeeper.common.RuleZookeeperUtil;
 import com.alibaba.csp.sentinel.datasource.Converter;
-import com.alibaba.csp.sentinel.util.AssertUtil;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
-@Component("flowRuleZookeeperPublisher")
-public class FlowRuleZookeeperPublisher implements DynamicRulePublisher<List<FlowRuleEntity>> {
+/**
+ * @author zoe
+ * @date 2020/11/9 11:30
+ */
+@Component("degradeRuleZookeeperPublisher")
+public class DegradeRuleZookeeperPublisher implements DynamicRulePublisher<List<DegradeRuleEntity>> {
     @Autowired
-    private CuratorFramework zkClient;
-    @Autowired
-    private Converter<List<FlowRuleEntity>, String> converter;
+    private Converter<List<DegradeRuleEntity>, String> converter;
 
     @Override
-    public void publish(String app, List<FlowRuleEntity> rules) throws Exception {
-        AssertUtil.notEmpty(app, "app name cannot be empty");
-
-        String path = ZookeeperConfigUtil.getPath(app, FlowRuleEntity.class);
-        Stat stat = zkClient.checkExists().forPath(path);
-        if (stat == null) {
-            zkClient.create().creatingParentContainersIfNeeded().withMode(CreateMode.PERSISTENT).forPath(path, null);
-        }
-        byte[] data = CollectionUtils.isEmpty(rules) ? "[]".getBytes() : converter.convert(rules).getBytes();
-        zkClient.setData().forPath(path, data);
+    public void publish(String app, List<DegradeRuleEntity> rules) throws Exception {
+        RuleZookeeperUtil.publish(app, rules, converter, DegradeRuleEntity.class);
     }
 }
